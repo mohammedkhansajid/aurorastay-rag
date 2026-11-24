@@ -1,5 +1,5 @@
-# Use a minimal base image with Python 3.13.15-slim installed
-FROM python:3.13.15-slim
+# Use a minimal base image with Python 3.11-slim installed
+FROM python:3.11-slim
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY . .
 RUN pip install --no-cache-dir --upgrade pip
 
 # Install Python dependencies listed in requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the Streamlit application on port 8501
 # 0.0.0.0 makes the application accessible outside the container
