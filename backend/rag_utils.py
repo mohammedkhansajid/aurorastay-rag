@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 import os
 
 # Retrieve the top-k relevant chunks from the vector store
-def retrieve(query: str, k: int = 2,vectorstore=None) -> list[str]:
+def retrieve(query: str, k: int = 2, vectorstore=None) -> list[str]:
     results = vectorstore.similarity_search(query, k=k)
 
     # Return each chunk with its content and metadata
@@ -15,13 +15,13 @@ def retrieve(query: str, k: int = 2,vectorstore=None) -> list[str]:
 def generate(query, retrieved_chunks, model) -> str:
 
     prompt = f"""
-    You are an AI assistant answering questions about Salesforce CRM using
-    only the information provided in the retrieved Salesforce documentation.
+    You are an AI assistant answering questions about AuroraStay Hotels using
+    only the information provided in the retrieved documentation.
 
     User Query:
     {query}
 
-    Retrieved Salesforce Documentation:
+    Retrieved Documentation:
     {retrieved_chunks}
 
     Rules:
@@ -33,28 +33,26 @@ def generate(query, retrieved_chunks, model) -> str:
 
     3. Answer the user's specific question directly and completely.
 
-    4. When the documentation provides configuration steps, setup instructions,
+    4. When the documentation provides policies, setup instructions,
       procedures, or troubleshooting steps, present them clearly and in the
       correct order.
 
-    5. Preserve important Salesforce-specific details such as:
+    5. Preserve important domain-specific details such as:
       - Feature names
-      - Object names
-      - Field names
+      - Policies and rates
+      - Room types
       - Settings
-      - Permissions
-      - User roles
-      - Configuration requirements
+      - Requirements
       - Limitations
       - Prerequisites
       - Exceptions
       - Supported functionality
 
-    6. Do not invent Salesforce features, configuration options, permissions,
+    6. Do not invent hotel features, configuration options, policies,
       limitations, or procedures.
 
     7. If the documentation mentions prerequisites or conditions required for
-      a feature or procedure, include them when relevant to the question.
+      a procedure, include them when relevant to the question.
 
     8. If the retrieved documentation does not contain enough information to
       answer the question, respond exactly with:
@@ -84,18 +82,22 @@ def rag(
     max_tokens: int = 512,
     vectorstore=None
 ):
+    base_url = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/v1"
+    if "AuroraStay-url" in base_url:
+        base_url = "https://api.openai.com/v1"
+
     # Create the generator model
     model = ChatOpenAI(
         model=model_name,
         temperature=temperature,
         top_p=top_p,
         max_tokens=max_tokens,
-        openai_api_key=os.getenv('OPENAI_API_KEY'),
-        openai_api_base=os.getenv('OPENAI_API_BASE')
+        api_key=os.getenv("OPENAI_API_KEY"),
+        base_url=base_url
     )
 
     # Retrieve relevant chunks
-    retrieved_chunks = retrieve(query=query, k=k,vectorstore=vectorstore)
+    retrieved_chunks = retrieve(query=query, k=k, vectorstore=vectorstore)
 
     # Generate answer using retrieved chunks
     answer = generate(
